@@ -18,7 +18,7 @@ namespace cron
 
    constexpr size_t INVALID_INDEX = static_cast<size_t>(-1);
 
-   class cronexpr;   
+   class cronexpr;
 
    namespace detail
    {
@@ -193,7 +193,7 @@ namespace cron
          return 0 == err ? out : nullptr;
 #else
          return localtime_r(date, out);
-#endif   
+#endif
       }
 
       inline std::tm to_tm(std::string_view time)
@@ -223,7 +223,7 @@ namespace cron
       inline std::string to_upper(std::string text)
       {
          std::transform(std::begin(text), std::end(text),
-            std::begin(text), static_cast<int(*)(int)>(std::toupper));
+            std::begin(text), [](auto const c) { return static_cast<char>(std::toupper(c)); });
 
          return text;
       }
@@ -262,7 +262,7 @@ namespace cron
       }
 
       static std::string replace_ordinals(
-         std::string text, 
+         std::string text,
          std::vector<std::string> const & replacement)
       {
          for (size_t i = 0; i < replacement.size(); ++i)
@@ -286,7 +286,7 @@ namespace cron
          {
             first = minval;
             last = maxval;
-         } 
+         }
          else if (!utils::contains(field, '-'))
          {
             first = to_cron_int(field);
@@ -342,7 +342,7 @@ namespace cron
                   target.set(i);
                }
             }
-            else 
+            else
             {
                auto parts = utils::split(field, '/');
                if (parts.size() != 2)
@@ -379,10 +379,10 @@ namespace cron
             days_replaced[0] = '*';
 
          set_cron_field(
-            days_replaced, 
-            target, 
+            days_replaced,
+            target,
             Traits::CRON_MIN_DAYS_OF_WEEK,
-            Traits::CRON_MAX_DAYS_OF_WEEK);         
+            Traits::CRON_MAX_DAYS_OF_WEEK);
       }
 
       template <typename Traits>
@@ -394,8 +394,8 @@ namespace cron
             value[0] = '*';
 
          set_cron_field(
-            value, 
-            target, 
+            value,
+            target,
             Traits::CRON_MIN_DAYS_OF_MONTH,
             Traits::CRON_MAX_DAYS_OF_MONTH);
       }
@@ -409,8 +409,8 @@ namespace cron
          auto month_replaced = replace_ordinals(month, Traits::MONTHS);
 
          set_cron_field(
-            month_replaced, 
-            target, 
+            month_replaced,
+            target,
             Traits::CRON_MIN_MONTHS,
             Traits::CRON_MAX_MONTHS);
       }
@@ -431,8 +431,8 @@ namespace cron
       }
 
       inline void add_to_field(
-         std::tm& date, 
-         cron_field const field, 
+         std::tm& date,
+         cron_field const field,
          int const val)
       {
          switch (field)
@@ -463,8 +463,8 @@ namespace cron
       }
 
       inline void set_field(
-         std::tm& date, 
-         cron_field const field, 
+         std::tm& date,
+         cron_field const field,
          int const val)
       {
          switch (field)
@@ -497,7 +497,7 @@ namespace cron
       }
 
       inline void reset_field(
-         std::tm& date, 
+         std::tm& date,
          cron_field const field)
       {
          switch (field)
@@ -530,7 +530,7 @@ namespace cron
       }
 
       inline void reset_all_fields(
-         std::tm& date, 
+         std::tm& date,
          std::bitset<7> const & marked_fields)
       {
          for (size_t i = 0; i < marked_fields.size(); ++i)
@@ -541,7 +541,7 @@ namespace cron
       }
 
       inline void mark_field(
-         std::bitset<7> & orders, 
+         std::bitset<7> & orders,
          cron_field const field)
       {
          if (!orders.test(static_cast<size_t>(field)))
@@ -553,7 +553,7 @@ namespace cron
          std::bitset<N> const & target,
          std::tm& date,
          unsigned int const minimum,
-         unsigned int const maximum, 
+         unsigned int const maximum,
          unsigned int const value,
          cron_field const field,
          cron_field const next_field,
@@ -575,7 +575,7 @@ namespace cron
 
          return next_value;
       }
-      
+
       template <typename Traits>
       static size_t find_next_day(
          std::tm& date,
@@ -589,7 +589,7 @@ namespace cron
          unsigned int maximum = 366;
          while (
             (!days_of_month.test(day_of_month - Traits::CRON_MIN_DAYS_OF_MONTH) ||
-            !days_of_week.test(day_of_week - Traits::CRON_MIN_DAYS_OF_WEEK)) 
+            !days_of_week.test(day_of_week - Traits::CRON_MIN_DAYS_OF_WEEK))
             && count++ < maximum)
          {
             add_to_field(date, cron_field::day_of_month, 1);
@@ -619,7 +619,7 @@ namespace cron
             date,
             Traits::CRON_MIN_SECONDS,
             Traits::CRON_MAX_SECONDS,
-            second, 
+            second,
             cron_field::second,
             cron_field::minute,
             empty_list);
@@ -708,12 +708,12 @@ namespace cron
          }
 
          return res;
-      }      
+      }
 
       template <cron_field field>
       constexpr auto& cron_field_ref(cronexpr& cex)
       {
-         if constexpr (field == cron_field::day_of_month) 
+         if constexpr (field == cron_field::day_of_month)
             return cex.days_of_month;
          else if constexpr (field == cron_field::day_of_week)
             return cex.days_of_week;
@@ -803,5 +803,5 @@ namespace cron
       }
 
       return utils::tm_to_time(*dt);
-   }   
+   }
 }
